@@ -20,15 +20,6 @@ motor IntakeMotor = motor(PORT20, ratio18_1, false);
 
 controller Controller1 = controller(primary);
 
-struct Vector2 {
-  double x;
-  double y;
-
-  Vector2(double x, double y) : x(x), y(y) {}
-};
-
-Vector2 drivetrain_velocity = Vector2(0,0);
-
 void controller_R1_Pressed() {
   IntakeMotor.spin(forward);
   while (Controller1.ButtonR1.pressing()) {
@@ -46,26 +37,28 @@ void controller_R2_Pressed() {
 }
 
 int main() {
-
-  // Create Controller callback events - 15 msec delay to ensure events get registered
   Controller1.ButtonR1.pressed(controller_R1_Pressed);
   Controller1.ButtonR2.pressed(controller_R2_Pressed);
-  wait(15,msec);
-
+  wait(5, msec);
+  
   IntakeMotor.setStopping(hold);
   IntakeMotor.setVelocity(100, percent);
-
-  drivetrain_velocity.y = Controller1.Axis3.position(percent);
-  drivetrain_velocity.x = Controller1.Axis1.position(percent);
 
   // Main Controller loop to set motors to controller axis postiions
   while(true){
 
-    DrivetrainLeft.setVelocity(drivetrain_velocity.y + drivetrain_velocity.x, percent);
-    DrivetrainRight.setVelocity(drivetrain_velocity.y - drivetrain_velocity.x, percent);
+    DrivetrainLeft.setVelocity(
+      Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent), 
+      percent
+    );
+    DrivetrainRight.setVelocity(
+      Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent), 
+      percent
+    );
 
-    DrivetrainLeft.spin(forward);
-    DrivetrainRight.spin(reverse);
+    DrivetrainLeft.spin(reverse);
+    DrivetrainRight.spin(forward);
+
     wait(5, msec);
   }
 }
