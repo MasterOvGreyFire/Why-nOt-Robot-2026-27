@@ -17,9 +17,12 @@ motor_group DrivetrainLeft = motor_group(DrivetrainLeft1, DrivetrainLeft2, Drive
 motor_group DrivetrainRight = motor_group(DrivetrainRight1, DrivetrainRight2, DrivetrainRight3);
 
 motor IntakeMotor = motor(PORT20, ratio18_1, false);
+motor LiftMotor = motor(PORT18, ratio18_1, false);
+motor ClawMotor = motor(PORT19, ratio18_1, false);
 
 controller Controller1 = controller(primary);
 
+//Intake Control
 void controller_R1_Pressed() {
   IntakeMotor.spin(forward);
   while (Controller1.ButtonR1.pressing()) {
@@ -36,29 +39,45 @@ void controller_R2_Pressed() {
   IntakeMotor.stop();
 }
 
+//Lift Control
+void controller_L1_Preseed() {
+  LiftMotor.spin(forward);
+  while (Controller1.ButtonL1.pressing()) {
+    wait(5, msec);
+  }
+  LiftMotor.stop();
+}
+
+void drivetrain_control() {
+  DrivetrainLeft.setVelocity(
+    Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent), 
+    percent
+  );
+
+  DrivetrainRight.setVelocity(
+    Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent), 
+    percent
+  );
+
+  DrivetrainLeft.spin(reverse);
+  DrivetrainRight.spin(forward);
+
+  wait(5, msec);
+}
+
 int main() {
   Controller1.ButtonR1.pressed(controller_R1_Pressed);
   Controller1.ButtonR2.pressed(controller_R2_Pressed);
   wait(5, msec);
   
-  IntakeMotor.setStopping(hold);
+  IntakeMotor.setStopping(coast);
   IntakeMotor.setVelocity(100, percent);
+
+  DrivetrainLeft.setStopping(brake);
+  DrivetrainRight.setStopping(brake);
 
   // Main Controller loop to set motors to controller axis postiions
   while(true){
-
-    DrivetrainLeft.setVelocity(
-      Controller1.Axis3.position(percent) + Controller1.Axis1.position(percent), 
-      percent
-    );
-    DrivetrainRight.setVelocity(
-      Controller1.Axis3.position(percent) - Controller1.Axis1.position(percent), 
-      percent
-    );
-
-    DrivetrainLeft.spin(reverse);
-    DrivetrainRight.spin(forward);
-
-    wait(5, msec);
+    drivetrain_control();
   }
 }
